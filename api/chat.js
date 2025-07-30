@@ -7,6 +7,7 @@ export default async function handler(req, res) {
    return;
  }
  if (req.method !== 'POST') {
+   console.error(`Received an unsupported method: ${req.method}`);
    return res.status(405).json({ message: 'Method not allowed' });
  }
  try {
@@ -14,7 +15,7 @@ export default async function handler(req, res) {
      method: 'POST',
      headers: {
        'Content-Type': 'application/json',
-       'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`, // Add this in your Vercel environment
+       'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`, // Ensure this key is in your Vercel environment
      },
      body: JSON.stringify(req.body),
    });
@@ -22,6 +23,7 @@ export default async function handler(req, res) {
    res.setHeader('Access-Control-Allow-Origin', '*');
    res.status(deepSeekRes.status).json(data);
  } catch (error) {
+   console.error('Error calling DeepSeek API:', error);
    res.setHeader('Access-Control-Allow-Origin', '*');
    res.status(500).json({ error: 'Internal Server Error', details: error.message });
  }
