@@ -1,22 +1,28 @@
-const axios = require("axios");
 export default async function handler(req, res) {
- if (req.method !== "POST") {
-   return res.status(405).json({ error: "Method not allowed" });
+ if (req.method === 'OPTIONS') {
+   res.setHeader('Access-Control-Allow-Origin', '*');
+   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+   res.status(204).end();
+   return;
+ }
+ if (req.method !== 'POST') {
+   return res.status(405).json({ message: 'Method not allowed' });
  }
  try {
-   const deepseekResponse = await axios.post(
-     "https://api.deepseek.com/v1/chat/completions",
-     req.body,
-     {
-       headers: {
-         "Content-Type": "application/json",
-         Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-       },
-     }
-   );
-   res.status(200).json(deepseekResponse.data);
+   const deepSeekRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
+     method: 'POST',
+     headers: {
+       'Content-Type': 'application/json',
+       'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`, // Add this in your Vercel environment
+     },
+     body: JSON.stringify(req.body),
+   });
+   const data = await deepSeekRes.json();
+   res.setHeader('Access-Control-Allow-Origin', '*');
+   res.status(deepSeekRes.status).json(data);
  } catch (error) {
-   console.error("DeepSeek error:", error.response?.data || error.message);
-   res.status(500).json({ error: "Failed to contact DeepSeek" });
+   res.setHeader('Access-Control-Allow-Origin', '*');
+   res.status(500).json({ error: 'Internal Server Error', details: error.message });
  }
 }
